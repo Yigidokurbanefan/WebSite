@@ -1,45 +1,75 @@
-from flask import Flask
-import random
+# İçe Aktarma
+from flask import Flask, render_template, request
+
 
 app = Flask(__name__)
 
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p><a href = '/abc'>DomDomKursunuDedi</a>"
+def result_calculate(size, lights, device):
+    # Elektrikli cihazların enerji tüketimini hesaplamaya olanak tanıyan değişkenler
+    home_coef = 100
+    light_coef = 0.04
+    devices_coef = 5   
+    return size * home_coef + lights * light_coef + device * devices_coef 
 
-@app.route("/abc")
-def abc():
-    return "<h1>Abc</h1> "
+# İlk sayfa
+@app.route('/')
+def index():
+    return render_template('index.html')
+# İkinci sayfa
+@app.route('/<size>')
+def lights(size):
+    return render_template(
+                            'lights.html', 
+                            size=size
+                           )
 
-bosliste = ["Teknolojik bağımlılıktan mustarip olan çoğu kişi, kendilerini şebeke kapsama alanı dışında bulduklarında veya cihazlarını kullanamadıkları zaman yoğun stres yaşarlar.",
-            "2018 yılında yapılan bir araştırmaya göre 18-34 yaş arası kişilerin %50'den fazlası kendilerini akıllı telefonlarına bağımlı olarak görüyor.",
-            "Teknolojik bağımlılık çalışması, modern bilimsel araştırmanın en ilgili alanlarından biridir.",
-            "Teknolojik bağımlılıkla mücadele etmenin bir yolu, zevk veren ve ruh halini iyileştiren faaliyetler aramaktır."]
+# Üçüncü sayfa
+@app.route('/<size>/<lights>')
+def electronics(size, lights):
+    return render_template(
+                            'electronics.html',                           
+                            size = size, 
+                            lights = lights                           
+                           )
 
-@app.route("/facts")
-def liste():
-    if len(bosliste) == 0:
-        return "<p>Daha Fazla Gerçek Kalmadı.</p>"
-    x = random.choice(bosliste)
-    bosliste.remove(x)
-    return f"<p>{x}</p><a href = '/def'>Gercekler</a>"
+# Hesaplama
+@app.route('/<size>/<lights>/<device>')
+def end(size, lights, device):
+    return render_template('end.html', 
+                            result=result_calculate(int(size),
+                                                    int(lights), 
+                                                    int(device)
+                                                    )
+                        )
+# Form
+@app.route('/form')
+def form():
+    return render_template('form.html')
 
+#Formun sonuçları
+@app.route('/submit', methods=['POST'])
+def submit_form():
+    # Veri toplama için değişkenleri tanımlayın
+    name = request.form['name']
+    email = request.form.get("email")
+    adress = request.form.get("address")
+    date = request.form.get("date")
 
-@app.route("/def")
-def ghi():
-    return 0
+    # Verilerinizi kaydedebilir veya e-posta ile gönderebilirsiniz
 
-@app.route("/<yazitura>")
-def merhaba():
-    a =('yazı',
-       'tura')
-    b = random.choice(a)
-    if set == b:
-        return'Doğru Cevap'
-    else:
-        return 
-    return f'<h1{b}</h1>'
+    with open("dosyaadi.txt","a", encoding="UTF-8") as notdefteri:
+        notdefteri.write(f"isim={name}\n")
+        notdefteri.write(f"email={email}\n")
+        notdefteri.write(f"adres={adress}\n")
+        notdefteri.write(f"tarih={date}\n")
+        notdefteri.write(f"--------------------------------------------------\n")
 
+    return render_template('form_result.html', 
+                           # Değişkenleri buraya yerleştirin
+                           name=name,
+                           email=email,
+                           adress=adress,
+                           date=date,
+                           )
 
-if __name__ == "__main__":
-    app.run(debug=True)
+app.run(debug=True)
